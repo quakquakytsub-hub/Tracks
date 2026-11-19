@@ -1,0 +1,6 @@
+{
+  "appId": "com.ironfund.tracks",
+  "appName": "Tracks",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
