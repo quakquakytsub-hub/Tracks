@@ -65,47 +65,252 @@
     .today-pulse {
       animation: pulseBorder 2.2s infinite ease-in-out;
     }
+
+    /* Slow Pop-Up Modal Animations */
+    .modal-backdrop {
+      opacity: 0;
+      transition: opacity 380ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .modal-backdrop.is-visible {
+      opacity: 1;
+    }
+    .modal-panel {
+      opacity: 0;
+      transform: translateY(22px) scale(0.92);
+      transition:
+        opacity 400ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity;
+    }
+    .modal-backdrop.is-visible .modal-panel {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   </style>
 </head>
-<body class="min-h-screen bg-obsidian text-zinc-100 font-sans antialiased pb-24 selection:bg-red-600 selection:text-white">
+<body class="min-h-screen bg-obsidian text-zinc-100 font-sans antialiased pb-14 selection:bg-red-600 selection:text-white">
 
   <!-- Toast Banner -->
   <div
     id="toast-banner"
     role="status"
     aria-live="polite"
-    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md bg-carbonLight border border-red-500/50 text-zinc-100 px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 transition-all duration-300 opacity-0 translate-y-6 pointer-events-none"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-md bg-carbonLight border border-red-500/50 text-zinc-100 px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 transition-all duration-300 opacity-0 translate-y-6 pointer-events-none"
   >
-    <div class="flex items-center gap-2.5 text-sm font-semibold">
-      <span id="toast-icon" class="w-6 h-6 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center font-extrabold text-xs">✓</span>
-      <span id="toast-message">Saved</span>
+    <div class="flex items-center gap-2.5 text-sm font-semibold min-w-0">
+      <span id="toast-icon" class="w-6 h-6 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center font-extrabold text-xs shrink-0">✓</span>
+      <span id="toast-message" class="truncate">Saved</span>
     </div>
     <button
       id="toast-close-btn"
       type="button"
-      class="text-xs text-zinc-400 hover:text-white px-2 py-1 rounded-lg"
+      class="text-xs text-zinc-400 hover:text-white px-2 py-1 rounded-lg shrink-0"
     >
       Close
     </button>
   </div>
 
+  <!-- Day Editor Pop-Up Modal (Opens when tapping a date on the calendar) -->
+  <div
+    id="day-editor-modal"
+    data-modal-backdrop
+    class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="editor-date-heading"
+  >
+    <div class="modal-panel bg-gradient-to-br from-carbon via-carbon to-red-950/20 border border-red-500/45 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
+      <div class="flex items-start justify-between gap-3 border-b border-zinc-800/90 pb-3.5">
+        <div class="space-y-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span
+              id="editor-today-badge"
+              class="hidden text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-600 text-white shrink-0"
+            >
+              TODAY
+            </span>
+            <span
+              id="editor-planned-badge"
+              class="hidden text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-950/80 border border-red-500/40 text-red-300"
+            >
+              Planned School Day
+            </span>
+          </div>
+          <h2 id="editor-date-heading" class="text-lg sm:text-xl font-black text-white leading-snug">Thursday, Nov 19, 2026</h2>
+          <p class="text-xs text-zinc-400">Log or update saved cash and notes for this date</p>
+        </div>
+
+        <button
+          id="close-day-editor-btn"
+          type="button"
+          aria-label="Close day editor"
+          class="p-2 rounded-xl bg-obsidian hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 shrink-0 transition"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between gap-2 bg-obsidian/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5">
+        <span class="text-xs font-bold text-zinc-400">Day Status</span>
+        <span
+          id="editor-status-badge"
+          class="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 shrink-0"
+        >
+          SAVED +₱205
+        </span>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label for="editor-amount-input" class="block text-[11px] font-black uppercase tracking-widest text-red-400 mb-1.5">
+            Amount Saved (₱)
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg font-black text-red-500">₱</span>
+            <input
+              id="editor-amount-input"
+              type="number"
+              inputmode="numeric"
+              step="1"
+              placeholder="0"
+              class="w-full bg-obsidian border border-zinc-700 focus:border-red-500 rounded-xl pl-9 pr-3.5 py-3 text-xl font-black text-white placeholder-zinc-600 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <span class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">One-Tap Quick Fill</span>
+          <div id="editor-presets-row" class="flex flex-wrap items-center gap-2"></div>
+        </div>
+
+        <div>
+          <label for="editor-note-input" class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">Day Note</label>
+          <input
+            id="editor-note-input"
+            type="text"
+            placeholder="Add note (e.g., Pastil + 2 eggs, school allowance saved)..."
+            class="w-full bg-obsidian border border-zinc-800 focus:border-red-500 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-800">
+        <button
+          id="done-day-editor-btn"
+          type="button"
+          class="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-extrabold transition"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Pop-Up Modal (Opens when tapping History in header) -->
+  <div
+    id="history-modal"
+    data-modal-backdrop
+    class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="history-modal-title"
+  >
+    <div class="modal-panel bg-carbon border border-red-500/40 rounded-3xl max-w-xl w-full max-h-[86vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4 shrink-0">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h2 id="history-modal-title" class="text-base sm:text-lg font-black text-white truncate">📜 History Tracker</h2>
+            <span
+              id="history-modal-count"
+              class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-red-600/20 border border-red-500/40 text-red-300 shrink-0"
+            >1 entry</span>
+          </div>
+          <p class="text-xs text-zinc-400 mt-0.5 truncate">
+            Logged day savings, purchases, gym payments, completed goals &amp; bonuses
+          </p>
+        </div>
+        <button
+          id="close-history-modal-btn"
+          type="button"
+          aria-label="Close history modal"
+          class="p-2 rounded-xl bg-obsidian hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 shrink-0 transition"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div id="history-filter-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar px-5 py-3 border-b border-zinc-800/80 bg-obsidian/50 shrink-0">
+        <button
+          type="button"
+          data-history-filter="all"
+          class="px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap bg-red-600 text-white border border-red-500 transition"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          data-history-filter="daily"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
+        >
+          Daily Logs
+        </button>
+        <button
+          type="button"
+          data-history-filter="purchase"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
+        >
+          Purchases
+        </button>
+        <button
+          type="button"
+          data-history-filter="gym_goal"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
+        >
+          Gym &amp; Goals
+        </button>
+        <button
+          type="button"
+          data-history-filter="bonus"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
+        >
+          Bonuses
+        </button>
+      </div>
+
+      <!-- Scrollable History List -->
+      <div id="wallet-history-list" class="p-4 sm:p-5 space-y-2.5 overflow-y-auto flex-1"></div>
+
+      <div class="flex items-center justify-end border-t border-zinc-800 px-5 py-3 bg-obsidian/60 shrink-0">
+        <button
+          id="close-history-footer-btn"
+          type="button"
+          class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs sm:text-sm font-bold border border-zinc-800 transition"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Month / Year Picker Modal -->
   <div
     id="month-picker-modal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+    data-modal-backdrop
+    class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
     role="dialog"
     aria-modal="true"
   >
-    <div class="bg-carbon border border-red-500/40 rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <div>
-          <h2 class="text-lg font-black text-white">Select Month &amp; Year</h2>
-          <p class="text-xs text-zinc-400">Jump straight to any month's savings calendar</p>
+    <div class="modal-panel bg-carbon border border-red-500/40 rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+        <div class="min-w-0">
+          <h2 class="text-lg font-black text-white truncate">Select Month &amp; Year</h2>
+          <p class="text-xs text-zinc-400 truncate">Jump straight to any month's savings calendar</p>
         </div>
         <button
           id="close-month-picker-btn"
           type="button"
-          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800"
+          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 shrink-0"
         >
           ✕
         </button>
@@ -116,7 +321,7 @@
         <button
           id="mp-prev-year-btn"
           type="button"
-          class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-black text-zinc-200"
+          class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-black text-zinc-200 shrink-0"
         >
           ‹ Prev Year
         </button>
@@ -124,7 +329,7 @@
         <button
           id="mp-next-year-btn"
           type="button"
-          class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-black text-zinc-200"
+          class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-black text-zinc-200 shrink-0"
         >
           Next Year ›
         </button>
@@ -155,20 +360,21 @@
   <!-- Quick Wallet Transaction Modal (- Bought Something / - Paid Monthly Gym / + Add Cash) -->
   <div
     id="tx-modal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+    data-modal-backdrop
+    class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
     role="dialog"
     aria-modal="true"
   >
-    <div class="bg-carbon border border-red-500/35 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <div>
-          <h2 id="tx-modal-title" class="text-lg font-extrabold text-white">Log Purchase</h2>
-          <p id="tx-modal-subtitle" class="text-xs text-zinc-400">Deducts directly from your Total Cash Saved</p>
+    <div class="modal-panel bg-carbon border border-red-500/35 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+        <div class="min-w-0">
+          <h2 id="tx-modal-title" class="text-lg font-extrabold text-white truncate">Log Purchase</h2>
+          <p id="tx-modal-subtitle" class="text-xs text-zinc-400 truncate">Deducts directly from your Total Cash Saved</p>
         </div>
         <button
           id="close-tx-modal-btn"
           type="button"
-          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800"
+          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 shrink-0"
         >
           ✕
         </button>
@@ -249,20 +455,21 @@
   <!-- Base Wallet Cash Modal -->
   <div
     id="start-cash-modal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+    data-modal-backdrop
+    class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
     role="dialog"
     aria-modal="true"
   >
-    <div class="bg-carbon border border-red-500/35 rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <div>
-          <h2 class="text-lg font-extrabold text-white">Base Pocket Cash</h2>
-          <p class="text-xs text-zinc-400">Extra starting cash outside daily calendar logs (default ₱0)</p>
+    <div class="modal-panel bg-carbon border border-red-500/35 rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+        <div class="min-w-0">
+          <h2 class="text-lg font-extrabold text-white truncate">Base Pocket Cash</h2>
+          <p class="text-xs text-zinc-400 truncate">Extra starting cash outside daily calendar logs (default ₱0)</p>
         </div>
         <button
           id="close-start-cash-btn"
           type="button"
-          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800"
+          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 shrink-0"
         >
           ✕
         </button>
@@ -301,23 +508,24 @@
   <!-- Complete Goal Modal -->
   <div
     id="complete-goal-modal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+    data-modal-backdrop
+    class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
     role="dialog"
     aria-modal="true"
   >
-    <div class="bg-carbon border border-red-500/45 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <div>
+    <div class="modal-panel bg-carbon border border-red-500/45 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+        <div class="min-w-0">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs font-extrabold">★</span>
-            <h2 class="text-lg font-extrabold text-white">Complete Goal</h2>
+            <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs font-extrabold shrink-0">★</span>
+            <h2 class="text-lg font-extrabold text-white truncate">Complete Goal</h2>
           </div>
           <p class="text-xs text-zinc-400 mt-0.5">Choose how you want to finalize this goal</p>
         </div>
         <button
           id="close-complete-goal-btn"
           type="button"
-          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800"
+          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 shrink-0"
         >
           ✕
         </button>
@@ -335,9 +543,9 @@
           type="button"
           class="w-full text-left p-3.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700 hover:border-emerald-500/50 transition space-y-1"
         >
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-2">
             <span class="text-sm font-extrabold text-emerald-400">✓ Mark Completed Only</span>
-            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Keep Wallet Cash</span>
+            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">Keep Wallet Cash</span>
           </div>
           <p class="text-xs text-zinc-300 leading-relaxed">
             Stamps this goal as <strong class="text-white">COMPLETED</strong> with today's date and leaves your Total Cash Saved untouched.
@@ -349,9 +557,9 @@
           type="button"
           class="w-full text-left p-3.5 rounded-2xl bg-red-950/40 hover:bg-red-950/60 border border-red-500/50 transition space-y-1"
         >
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-2">
             <span id="cg-deduct-title" class="text-sm font-extrabold text-red-300">★ Complete &amp; Deduct ₱1,000</span>
-            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-500/20 text-red-200 border border-red-500/40">Spend Goal</span>
+            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-500/20 text-red-200 border border-red-500/40 shrink-0">Spend Goal</span>
           </div>
           <p id="cg-deduct-desc" class="text-xs text-zinc-300 leading-relaxed">
             Marks goal completed, deducts <strong class="text-white">₱1,000</strong> from your wallet into History, and starts your 30-day gym countdown.
@@ -363,7 +571,7 @@
             id="cg-auto-switch-checkbox"
             type="checkbox"
             checked
-            class="w-4 h-4 rounded accent-red-600 bg-obsidian border-zinc-700"
+            class="w-4 h-4 rounded accent-red-600 bg-obsidian border-zinc-700 shrink-0"
           />
           <span class="text-xs text-zinc-300">Auto-switch to next active goal after completing</span>
         </label>
@@ -384,20 +592,21 @@
   <!-- Goal Settings & New Goal Modal -->
   <div
     id="goal-modal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto"
+    data-modal-backdrop
+    class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto"
     role="dialog"
     aria-modal="true"
   >
-    <div class="bg-carbon border border-red-500/35 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
-      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <div>
-          <h2 id="goal-modal-title" class="text-lg font-extrabold text-white">Edit Savings Goal</h2>
-          <p class="text-xs text-zinc-400">Customize goal title, target amount, deadline &amp; quick-fill presets</p>
+    <div class="modal-panel bg-carbon border border-red-500/35 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
+      <div class="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+        <div class="min-w-0">
+          <h2 id="goal-modal-title" class="text-lg font-extrabold text-white truncate">Edit Savings Goal</h2>
+          <p class="text-xs text-zinc-400 truncate">Customize goal title, target amount, deadline &amp; quick-fill presets</p>
         </div>
         <button
           id="close-goal-modal-btn"
           type="button"
-          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800"
+          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 shrink-0"
         >
           ✕
         </button>
@@ -481,20 +690,21 @@
   <!-- Backup / Restore Modal -->
   <div
     id="backup-modal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+    data-modal-backdrop
+    class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4"
     role="dialog"
     aria-modal="true"
   >
-    <div class="bg-carbon border border-red-500/35 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <div>
-          <h2 class="text-lg font-extrabold text-white">Backup &amp; Restore JSON</h2>
-          <p class="text-xs text-zinc-400">Export or restore your IRON FUND calendar logs, wallet &amp; goals</p>
+    <div class="modal-panel bg-carbon border border-red-500/35 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+        <div class="min-w-0">
+          <h2 class="text-lg font-extrabold text-white truncate">Backup &amp; Restore JSON</h2>
+          <p class="text-xs text-zinc-400 truncate">Export or restore your IRON FUND calendar logs, wallet &amp; goals</p>
         </div>
         <button
           id="close-backup-btn"
           type="button"
-          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800"
+          class="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-800 shrink-0"
         >
           ✕
         </button>
@@ -527,7 +737,7 @@
           ></textarea>
         </div>
 
-        <div class="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-800">
           <button
             id="reset-default-btn"
             type="button"
@@ -535,7 +745,7 @@
           >
             Reset App Data
           </button>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 ml-auto">
             <button
               id="close-backup-footer-btn"
               type="button"
@@ -558,52 +768,42 @@
 
   <!-- 1. STICKY TOP HEADER -->
   <header class="sticky top-0 z-30 bg-obsidian/92 backdrop-blur-md border-b border-red-950/70">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5 min-w-0">
+    <div class="max-w-4xl mx-auto px-3.5 sm:px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-600 to-red-950 border border-red-400/40 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-red-950/60 shrink-0">
           ₱
         </div>
         <div class="min-w-0">
-          <h1 class="text-sm sm:text-base font-black tracking-wider text-white truncate">
+          <h1 class="text-xs sm:text-base font-black tracking-wider text-white truncate">
             IRON FUND <span class="text-red-500">//</span> TRACKER
           </h1>
-          <p id="header-live-date" class="text-[11px] text-zinc-400 truncate">Thursday, Nov 19, 2026</p>
+          <p id="header-live-date" class="text-[10px] sm:text-[11px] text-zinc-400 truncate">Thursday, Nov 19, 2026</p>
         </div>
       </div>
 
       <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button
-          id="scroll-history-btn"
+          id="open-history-btn"
           type="button"
-          class="px-3 py-2 rounded-full text-xs font-extrabold bg-red-600/20 hover:bg-red-600/35 border border-red-500/45 text-red-200 transition flex items-center gap-1.5"
+          class="px-2.5 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-extrabold bg-red-600/20 hover:bg-red-600/35 border border-red-500/45 text-red-200 transition flex items-center gap-1.5 shrink-0"
         >
-          <span>📜 History</span>
+          <span>📜</span>
+          <span>History</span>
           <span
             id="top-history-badge"
-            class="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[10px] font-black"
+            class="px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-black leading-none"
           >1</span>
         </button>
         <button
           id="backup-btn"
           type="button"
-          class="px-3 py-2 rounded-xl text-xs font-bold bg-carbon hover:bg-carbonLight border border-zinc-800 text-zinc-200 transition"
+          class="px-2.5 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-bold bg-carbon hover:bg-carbonLight border border-zinc-800 text-zinc-200 transition shrink-0"
         >
           Backup
         </button>
       </div>
     </div>
   </header>
-
-  <!-- Floating Back-to-Top Pill Button -->
-  <button
-    id="scroll-top-btn"
-    type="button"
-    aria-label="Scroll back to top"
-    class="fixed bottom-5 right-4 z-40 px-3.5 py-2.5 rounded-full bg-red-600 hover:bg-red-500 border border-red-400/40 text-xs font-black text-white shadow-xl shadow-red-950/70 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none flex items-center gap-1"
-  >
-    <span>↑</span>
-    <span>Top</span>
-  </button>
 
   <main class="max-w-4xl mx-auto px-4 pt-5 space-y-5">
 
@@ -613,13 +813,13 @@
       class="bg-gradient-to-br from-carbon via-carbon to-red-950/30 border border-red-500/35 rounded-3xl p-5 sm:p-6 red-glow space-y-5"
     >
       <div class="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div class="min-w-0">
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-xs font-black uppercase tracking-widest text-red-400">Total Cash Saved</span>
             <button
               id="edit-start-cash-btn"
               type="button"
-              class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
+              class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition shrink-0"
             >
               Base Cash: <span id="start-cash-display">₱0</span> ✎
             </button>
@@ -635,7 +835,7 @@
         <!-- 30-Day Gym Membership Countdown Banner -->
         <div
           id="gym-status-card"
-          class="bg-obsidian/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px]"
+          class="bg-obsidian/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px] shrink-0"
         >
           <div class="text-[10px] font-black uppercase tracking-widest text-red-400">30-Day Gym Pass</div>
           <div id="gym-countdown-value" class="text-sm font-extrabold text-zinc-200 mt-0.5">Gym Pass: Not Active</div>
@@ -648,27 +848,27 @@
         <button
           id="btn-bought-something"
           type="button"
-          class="w-full py-3 px-4 rounded-2xl bg-red-950/55 hover:bg-red-900/65 active:scale-[0.99] border border-red-500/45 text-red-200 font-extrabold text-sm flex items-center justify-center gap-2 transition"
+          class="w-full py-3 px-4 rounded-2xl bg-red-950/55 hover:bg-red-900/65 active:scale-[0.98] border border-red-500/45 text-red-200 font-extrabold text-sm flex items-center justify-center gap-2 transition"
         >
-          <span class="w-5 h-5 rounded-full bg-red-500/30 text-red-200 flex items-center justify-center text-xs font-black">−</span>
+          <span class="w-5 h-5 rounded-full bg-red-500/30 text-red-200 flex items-center justify-center text-xs font-black shrink-0">−</span>
           <span>Bought Something</span>
         </button>
 
         <button
           id="btn-paid-gym"
           type="button"
-          class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 active:scale-[0.99] border border-red-400/40 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-red-950/60"
+          class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 active:scale-[0.98] border border-red-400/40 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-red-950/60"
         >
-          <span class="w-5 h-5 rounded-full bg-black/30 text-white flex items-center justify-center text-xs font-black">−</span>
+          <span class="w-5 h-5 rounded-full bg-black/30 text-white flex items-center justify-center text-xs font-black shrink-0">−</span>
           <span>Paid Monthly Gym</span>
         </button>
 
         <button
           id="btn-add-cash"
           type="button"
-          class="w-full py-3 px-4 rounded-2xl bg-zinc-900 hover:bg-zinc-800 active:scale-[0.99] border border-zinc-700 hover:border-emerald-500/50 text-emerald-300 font-extrabold text-sm flex items-center justify-center gap-2 transition"
+          class="w-full py-3 px-4 rounded-2xl bg-zinc-900 hover:bg-zinc-800 active:scale-[0.98] border border-zinc-700 hover:border-emerald-500/50 text-emerald-300 font-extrabold text-sm flex items-center justify-center gap-2 transition"
         >
-          <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xs font-black">+</span>
+          <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xs font-black shrink-0">+</span>
           <span>Add Cash / Bonus</span>
         </button>
       </div>
@@ -707,17 +907,17 @@
           id="goal-completed-banner"
           class="hidden bg-gradient-to-r from-amber-950/60 via-emerald-950/60 to-amber-950/60 border border-emerald-400/50 rounded-xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2"
         >
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-full bg-amber-500/25 text-amber-300 flex items-center justify-center text-xs font-black">★</span>
-            <div>
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-6 h-6 rounded-full bg-amber-500/25 text-amber-300 flex items-center justify-center text-xs font-black shrink-0">★</span>
+            <div class="min-w-0">
               <div class="text-xs font-black uppercase tracking-wider text-emerald-300">Goal Completed!</div>
-              <div id="goal-completed-date-label" class="text-[11px] text-zinc-200">Completed today</div>
+              <div id="goal-completed-date-label" class="text-[11px] text-zinc-200 truncate">Completed today</div>
             </div>
           </div>
           <button
             id="reopen-goal-btn"
             type="button"
-            class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-200 transition"
+            class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-200 transition shrink-0"
           >
             Reopen Goal
           </button>
@@ -729,7 +929,7 @@
               <h2 id="active-goal-name" class="text-base sm:text-lg font-black text-white">Gym Membership (₱1,000)</h2>
               <span
                 id="active-goal-completed-pill"
-                class="hidden text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300"
+                class="hidden text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 shrink-0"
               >
                 ✓ Completed
               </span>
@@ -760,19 +960,19 @@
         </div>
 
         <div class="grid grid-cols-3 gap-2.5 pt-0.5">
-          <div class="bg-carbon border border-zinc-800/90 rounded-xl p-2.5">
-            <div class="text-[11px] font-medium text-zinc-400">Remaining</div>
-            <div id="goal-remaining-value" class="text-base sm:text-lg font-black text-red-400 mt-0.5">₱795</div>
+          <div class="bg-carbon border border-zinc-800/90 rounded-xl p-2.5 min-w-0">
+            <div class="text-[11px] font-medium text-zinc-400 truncate">Remaining</div>
+            <div id="goal-remaining-value" class="text-base sm:text-lg font-black text-red-400 mt-0.5 truncate">₱795</div>
           </div>
 
-          <div class="bg-carbon border border-zinc-800/90 rounded-xl p-2.5">
-            <div class="text-[11px] font-medium text-zinc-400">Buffer Over</div>
-            <div id="goal-buffer-value" class="text-base sm:text-lg font-black text-emerald-400 mt-0.5">₱0</div>
+          <div class="bg-carbon border border-zinc-800/90 rounded-xl p-2.5 min-w-0">
+            <div class="text-[11px] font-medium text-zinc-400 truncate">Buffer Over</div>
+            <div id="goal-buffer-value" class="text-base sm:text-lg font-black text-emerald-400 mt-0.5 truncate">₱0</div>
           </div>
 
-          <div class="bg-carbon border border-zinc-800/90 rounded-xl p-2.5">
-            <div class="text-[11px] font-medium text-zinc-400">Month Saved</div>
-            <div id="month-saved-total" class="text-base sm:text-lg font-black text-emerald-400 mt-0.5">₱205</div>
+          <div class="bg-carbon border border-zinc-800/90 rounded-xl p-2.5 min-w-0">
+            <div class="text-[11px] font-medium text-zinc-400 truncate">Month Saved</div>
+            <div id="month-saved-total" class="text-base sm:text-lg font-black text-emerald-400 mt-0.5 truncate">₱205</div>
           </div>
         </div>
       </div>
@@ -780,7 +980,7 @@
 
     <!-- 4. INTERACTIVE MONTH SELECTOR & FULL-MONTH CALENDAR DAY GRID -->
     <section
-      aria-label="Monthly Savings Calendar and Day Editor"
+      aria-label="Monthly Savings Calendar"
       class="bg-carbon border border-zinc-800/90 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xl"
     >
       <!-- Month Selector Bar -->
@@ -788,7 +988,7 @@
         <button
           id="prev-month-btn"
           type="button"
-          class="px-3 sm:px-4 py-2.5 rounded-xl bg-carbon hover:bg-carbonLight border border-zinc-800 text-xs sm:text-sm font-extrabold text-zinc-200 transition flex items-center gap-1"
+          class="px-3 sm:px-4 py-2.5 rounded-xl bg-carbon hover:bg-carbonLight border border-zinc-800 text-xs sm:text-sm font-extrabold text-zinc-200 transition flex items-center gap-1 shrink-0"
         >
           <span>‹</span>
           <span>Prev</span>
@@ -797,17 +997,17 @@
         <button
           id="open-month-picker-btn"
           type="button"
-          class="px-4 py-2.5 rounded-xl bg-red-600/15 hover:bg-red-600/25 border border-red-500/45 text-sm sm:text-base font-black text-white transition flex items-center gap-2 shadow-sm"
+          class="px-3.5 sm:px-4 py-2.5 rounded-xl bg-red-600/15 hover:bg-red-600/25 border border-red-500/45 text-xs sm:text-base font-black text-white transition flex items-center gap-1.5 sm:gap-2 shadow-sm min-w-0"
         >
-          <span>📅</span>
-          <span id="current-month-label">November 2026</span>
-          <span class="text-red-400 text-xs">▾</span>
+          <span class="shrink-0">📅</span>
+          <span id="current-month-label" class="truncate">November 2026</span>
+          <span class="text-red-400 text-xs shrink-0">▾</span>
         </button>
 
         <button
           id="next-month-btn"
           type="button"
-          class="px-3 sm:px-4 py-2.5 rounded-xl bg-carbon hover:bg-carbonLight border border-zinc-800 text-xs sm:text-sm font-extrabold text-zinc-200 transition flex items-center gap-1"
+          class="px-3 sm:px-4 py-2.5 rounded-xl bg-carbon hover:bg-carbonLight border border-zinc-800 text-xs sm:text-sm font-extrabold text-zinc-200 transition flex items-center gap-1 shrink-0"
         >
           <span>Next</span>
           <span>›</span>
@@ -818,15 +1018,15 @@
       <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-zinc-400">
         <div class="flex flex-wrap items-center gap-3">
           <span class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-950 border border-emerald-400"></span>
+            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-950 border border-emerald-400 shrink-0"></span>
             <span class="text-emerald-300 font-semibold">Saved (&gt;₱0)</span>
           </span>
           <span class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-sm bg-zinc-900 border border-amber-500/60"></span>
+            <span class="w-2.5 h-2.5 rounded-sm bg-zinc-900 border border-amber-500/60 shrink-0"></span>
             <span>Logged ₱0</span>
           </span>
           <span class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
             <span>Planned School Day</span>
           </span>
         </div>
@@ -847,138 +1047,9 @@
       <!-- Full-Month Calendar Grid -->
       <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 sm:gap-2"></div>
 
-      <!-- Selected Day Editor Panel Directly Underneath Calendar -->
-      <div
-        id="selected-day-editor"
-        class="bg-gradient-to-br from-obsidian via-obsidian to-carbonLight border border-red-500/40 rounded-2xl p-4 sm:p-5 space-y-4 transition"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800/90 pb-3">
-          <div class="space-y-0.5">
-            <div class="flex flex-wrap items-center gap-2">
-              <h3 id="editor-date-heading" class="text-base sm:text-lg font-black text-white">Thursday, Nov 19, 2026</h3>
-              <span
-                id="editor-today-badge"
-                class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-600 text-white"
-              >
-                TODAY
-              </span>
-              <span
-                id="editor-planned-badge"
-                class="hidden text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-950/80 border border-red-500/40 text-red-300"
-              >
-                Planned School Day
-              </span>
-            </div>
-            <p class="text-xs text-zinc-400">Tap any date above to view or edit your savings for that day</p>
-          </div>
-
-          <span
-            id="editor-status-badge"
-            class="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300"
-          >
-            SAVED +₱205
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-end">
-          <div class="sm:col-span-5">
-            <label for="editor-amount-input" class="block text-[11px] font-black uppercase tracking-widest text-red-400 mb-1.5">
-              Amount Saved (₱)
-            </label>
-            <div class="relative">
-              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg font-black text-red-500">₱</span>
-              <input
-                id="editor-amount-input"
-                type="number"
-                inputmode="numeric"
-                step="1"
-                placeholder="0"
-                class="w-full bg-carbon border border-zinc-700 focus:border-red-500 rounded-xl pl-9 pr-3.5 py-3 text-xl font-black text-white placeholder-zinc-600 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div class="sm:col-span-7 space-y-2.5">
-            <div>
-              <span class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">One-Tap Quick Fill</span>
-              <div id="editor-presets-row" class="flex flex-wrap items-center gap-1.5"></div>
-            </div>
-
-            <div>
-              <label for="editor-note-input" class="sr-only">Day Note</label>
-              <input
-                id="editor-note-input"
-                type="text"
-                placeholder="Add note (e.g., Pastil + 2 eggs, school allowance saved)..."
-                class="w-full bg-carbon border border-zinc-800 focus:border-red-500 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. UNIFIED HISTORY TRACKER (#historySection) -->
-    <section
-      id="historySection"
-      aria-label="Unified History Tracker"
-      class="scroll-mt-20 bg-carbon border border-zinc-800/90 rounded-3xl p-5 space-y-4 shadow-xl"
-    >
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <div class="flex items-center gap-2">
-            <h3 class="text-base sm:text-lg font-black text-white">📜 History Tracker</h3>
-            <span
-              id="history-section-count"
-              class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-red-600/20 border border-red-500/40 text-red-300"
-            >1 entry</span>
-          </div>
-          <p class="text-xs text-zinc-400 mt-0.5">
-            Chronological feed of every logged day savings, purchase, gym payment, completed goal, and bonus.
-          </p>
-        </div>
-      </div>
-
-      <!-- Filter Tabs -->
-      <div id="history-filter-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-        <button
-          type="button"
-          data-history-filter="all"
-          class="px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap bg-red-600 text-white border border-red-500 transition"
-        >
-          All
-        </button>
-        <button
-          type="button"
-          data-history-filter="daily"
-          class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
-        >
-          Daily Logs
-        </button>
-        <button
-          type="button"
-          data-history-filter="purchase"
-          class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
-        >
-          Purchases
-        </button>
-        <button
-          type="button"
-          data-history-filter="gym_goal"
-          class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
-        >
-          Gym &amp; Goals
-        </button>
-        <button
-          type="button"
-          data-history-filter="bonus"
-          class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-obsidian hover:bg-zinc-900 text-zinc-300 border border-zinc-800 transition"
-        >
-          Bonuses
-        </button>
-      </div>
-
-      <div id="wallet-history-list" class="space-y-2.5"></div>
+      <p class="text-xs text-zinc-400 text-center pt-1">
+        Tap any date tile to open its pop-up savings editor window
+      </p>
     </section>
 
   </main>
@@ -989,6 +1060,7 @@
      * Sleek Red & Black Obsidian Edition
      */
     const STORAGE_KEY = 'iron_fund_monthly_calendar_v1';
+    const MODAL_CLOSE_MS = 380;
 
     // Planned school days in Nov 2026 (Nov 19, 20, 21 Sat class, Nov 23-27)
     const PLANNED_SCHOOL_DAYS = {
@@ -1107,7 +1179,6 @@
             completedDate: '',
           },
         ],
-        // Keyed by YYYY-MM-DD so every calendar day is directly addressable and rolls forward automatically
         dailyLogs: {
           '2026-11-19': {
             amount: 205,
@@ -1116,7 +1187,7 @@
         },
         transactions: [],
         viewYear: todayDt.getFullYear(),
-        viewMonth: todayDt.getMonth(), // 0-indexed (10 = November)
+        viewMonth: todayDt.getMonth(),
         selectedDate: todayISO,
         lastOpenedDate: todayISO,
       };
@@ -1128,6 +1199,41 @@
     let goalModalMode = 'edit';
     let pickerYear = 2026;
     let toastTimer = null;
+    const modalCloseTimers = new Map();
+
+    // Slow Pop-Up Modal Helpers
+    function openAnimatedModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      if (modalCloseTimers.has(modalId)) {
+        clearTimeout(modalCloseTimers.get(modalId));
+        modalCloseTimers.delete(modalId);
+      }
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      // Force layout reflow so slow cubic-bezier pop-up always animates smoothly
+      void modal.offsetWidth;
+      requestAnimationFrame(() => {
+        modal.classList.add('is-visible');
+      });
+    }
+
+    function closeAnimatedModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      modal.classList.remove('is-visible');
+      if (modalCloseTimers.has(modalId)) {
+        clearTimeout(modalCloseTimers.get(modalId));
+      }
+      const timer = setTimeout(() => {
+        if (!modal.classList.contains('is-visible')) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+        modalCloseTimers.delete(modalId);
+      }, MODAL_CLOSE_MS);
+      modalCloseTimers.set(modalId, timer);
+    }
 
     function showToast(message, isWarning = false) {
       const banner = document.getElementById('toast-banner');
@@ -1138,8 +1244,8 @@
       msgEl.textContent = message;
       iconEl.textContent = isWarning ? '!' : '✓';
       iconEl.className = isWarning
-        ? 'w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center font-extrabold text-xs'
-        : 'w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-extrabold text-xs';
+        ? 'w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center font-extrabold text-xs shrink-0'
+        : 'w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-extrabold text-xs shrink-0';
 
       banner.classList.remove('opacity-0', 'translate-y-6', 'pointer-events-none');
       if (toastTimer) clearTimeout(toastTimer);
@@ -1186,7 +1292,6 @@
               lastOpenedDate: parsed.lastOpenedDate || realTodayISO,
             };
 
-            // Automatic daily calendar roll-over when opened on a new real calendar day
             if (state.lastOpenedDate !== realTodayISO) {
               state.viewYear = realTodayDt.getFullYear();
               state.viewMonth = realTodayDt.getMonth();
@@ -1273,7 +1378,6 @@
     function buildUnifiedHistoryEntries() {
       const entries = [];
 
-      // 1. Calendar Daily Logs
       Object.entries(state.dailyLogs).forEach(([iso, item]) => {
         if (!item || item.amount === '' || item.amount === null || item.amount === undefined) return;
         const amt = Number(item.amount);
@@ -1297,7 +1401,6 @@
         });
       });
 
-      // 2. Wallet Transactions
       state.transactions.forEach((tx, idx) => {
         const isBonus = tx.type === 'bonus';
         const isGym = tx.type === 'gym';
@@ -1325,7 +1428,6 @@
         });
       });
 
-      // 3. Completed Goals
       state.goals.forEach((g, idx) => {
         if (!g.completed) return;
         const alreadyInTx = state.transactions.some((t) => t.title === `Completed Goal: ${g.name}`);
@@ -1372,7 +1474,6 @@
       document.getElementById('wallet-breakdown-line').textContent =
         `Base ${formatPeso(metrics.startCash)} + ${formatPeso(metrics.totalDailySaved)} calendar savings${bonusPart} − ${formatPeso(metrics.totalSpent)} spent/paid`;
 
-      // 30-Day Gym Membership Countdown Banner
       const gymValEl = document.getElementById('gym-countdown-value');
       const gymSubEl = document.getElementById('gym-countdown-sub');
       const gymCardEl = document.getElementById('gym-status-card');
@@ -1384,27 +1485,26 @@
           gymValEl.textContent = `${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left`;
           gymValEl.className = 'text-sm font-black text-emerald-400 mt-0.5';
           gymSubEl.textContent = `Renews ${formatPrettyDate(dueISO)}`;
-          gymCardEl.className = 'bg-emerald-950/30 border border-emerald-500/40 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px]';
+          gymCardEl.className = 'bg-emerald-950/30 border border-emerald-500/40 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px] shrink-0';
         } else if (daysLeft === 0) {
           gymValEl.textContent = 'Due Today!';
           gymValEl.className = 'text-sm font-black text-amber-400 mt-0.5';
           gymSubEl.textContent = `Paid ${formatPrettyDate(metrics.latestGym.date)}`;
-          gymCardEl.className = 'bg-amber-950/35 border border-amber-500/45 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px]';
+          gymCardEl.className = 'bg-amber-950/35 border border-amber-500/45 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px] shrink-0';
         } else {
           const overdue = Math.abs(daysLeft || 0);
           gymValEl.textContent = `Expired (${overdue}d ago)`;
           gymValEl.className = 'text-sm font-black text-red-400 mt-0.5';
           gymSubEl.textContent = `Was due ${formatPrettyDate(dueISO)}`;
-          gymCardEl.className = 'bg-red-950/45 border border-red-500/50 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px]';
+          gymCardEl.className = 'bg-red-950/45 border border-red-500/50 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px] shrink-0';
         }
       } else {
         gymValEl.textContent = 'Gym Pass: Not Active';
         gymValEl.className = 'text-sm font-extrabold text-zinc-200 mt-0.5';
         gymSubEl.textContent = 'Tap "− Paid Monthly Gym" when paid';
-        gymCardEl.className = 'bg-obsidian/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px]';
+        gymCardEl.className = 'bg-obsidian/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 text-left sm:text-right min-w-[185px] shrink-0';
       }
 
-      // Goal Switcher Pills
       const pillsEl = document.getElementById('goal-pills-container');
       pillsEl.innerHTML = state.goals
         .map((g) => {
@@ -1431,7 +1531,6 @@
         })
         .join('');
 
-      // Active Goal Card
       const isGoalCompleted = Boolean(goal.completed);
       const activeGoalCardEl = document.getElementById('active-goal-card');
       const completedBannerEl = document.getElementById('goal-completed-banner');
@@ -1472,7 +1571,7 @@
       const remEl = document.getElementById('goal-remaining-value');
       const displayRem = isGoalCompleted ? 0 : metrics.remainingToGoal;
       remEl.textContent = formatPeso(displayRem);
-      remEl.className = `text-base sm:text-lg font-black mt-0.5 ${
+      remEl.className = `text-base sm:text-lg font-black mt-0.5 truncate ${
         displayRem === 0 ? 'text-emerald-400' : 'text-red-400'
       }`;
 
@@ -1492,17 +1591,15 @@
       document.getElementById('month-days-saved-count').textContent =
         `${metrics.monthSavedDaysCount} ${metrics.monthSavedDaysCount === 1 ? 'day' : 'days'} saved in ${MONTH_SHORT[month]}`;
 
-      const firstWeekday = new Date(year, month, 1).getDay(); // 0 = Sun ... 6 = Sat
+      const firstWeekday = new Date(year, month, 1).getDay();
       const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
 
       let html = '';
 
-      // Leading empty cells before the 1st of the month
       for (let i = 0; i < firstWeekday; i++) {
         html += `<div class="min-h-[66px] sm:min-h-[76px] rounded-2xl bg-obsidian/35 border border-zinc-900/60"></div>`;
       }
 
-      // All days 1 .. totalDaysInMonth
       for (let dayNum = 1; dayNum <= totalDaysInMonth; dayNum++) {
         const iso = formatISOFromParts(year, month, dayNum);
         const isToday = iso === realTodayISO;
@@ -1541,7 +1638,7 @@
           : '';
 
         const topRightTag = isToday
-          ? `<span class="text-[8px] sm:text-[9px] font-black uppercase px-1 py-0.2 rounded bg-red-600 text-white leading-tight">TODAY</span>`
+          ? `<span class="text-[8px] sm:text-[9px] font-black uppercase px-1 py-0.5 rounded bg-red-600 text-white leading-none shrink-0">TODAY</span>`
           : isPlanned
             ? `<span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" title="${escapeHtml(PLANNED_SCHOOL_DAYS[iso])}"></span>`
             : '';
@@ -1550,10 +1647,10 @@
           <button
             type="button"
             data-cal-date="${iso}"
-            class="min-h-[68px] sm:min-h-[78px] rounded-2xl p-1.5 sm:p-2 border ${cellBg} ${borderStyle} ${glowClass} ${selectedRing} flex flex-col justify-between items-start text-left transition active:scale-[0.97] relative overflow-hidden"
+            class="min-h-[68px] sm:min-h-[78px] rounded-2xl p-1.5 sm:p-2 border ${cellBg} ${borderStyle} ${glowClass} ${selectedRing} flex flex-col justify-between items-start text-left transition active:scale-[0.95] relative overflow-hidden"
           >
-            <div class="w-full flex items-center justify-between gap-1">
-              <span class="text-xs sm:text-sm font-black ${
+            <div class="w-full flex items-center justify-between gap-1 min-w-0">
+              <span class="text-xs sm:text-sm font-black shrink-0 ${
                 hasLog && savedAmt > 0
                   ? 'text-white'
                   : isToday
@@ -1562,7 +1659,7 @@
               }">${dayNum}</span>
               ${topRightTag}
             </div>
-            <div class="w-full flex items-center justify-start mt-1">
+            <div class="w-full flex items-center justify-start mt-1 min-w-0">
               ${amountPillHtml}
             </div>
           </button>
@@ -1598,13 +1695,13 @@
       const statusBadge = document.getElementById('editor-status-badge');
       if (hasLog && savedAmt > 0) {
         statusBadge.textContent = `SAVED +${formatPeso(savedAmt)}`;
-        statusBadge.className = 'text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300';
+        statusBadge.className = 'text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 shrink-0';
       } else if (hasLog && savedAmt === 0) {
         statusBadge.textContent = 'LOGGED ₱0';
-        statusBadge.className = 'text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/45 text-amber-300';
+        statusBadge.className = 'text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/45 text-amber-300 shrink-0';
       } else {
         statusBadge.textContent = 'NOT LOGGED';
-        statusBadge.className = 'text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-zinc-900 border border-zinc-700 text-zinc-400';
+        statusBadge.className = 'text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-zinc-900 border border-zinc-700 text-zinc-400 shrink-0';
       }
 
       const amtInput = document.getElementById('editor-amount-input');
@@ -1616,7 +1713,6 @@
         noteInput.value = entry?.note || '';
       }
 
-      // Quick-fill preset buttons
       const goal = getActiveGoal();
       const presets = Array.isArray(goal.presets) && goal.presets.length > 0 ? goal.presets : [150, 160, 175, 0];
       const presetsRow = document.getElementById('editor-presets-row');
@@ -1628,7 +1724,7 @@
               <button
                 type="button"
                 data-editor-preset="${p}"
-                class="px-3 py-1.5 rounded-xl bg-carbon hover:bg-emerald-950/70 border border-zinc-700 hover:border-emerald-400/60 text-xs font-extrabold ${
+                class="px-3 py-1.5 rounded-xl bg-obsidian hover:bg-emerald-950/70 border border-zinc-700 hover:border-emerald-400/60 text-xs font-extrabold ${
                   p === 0 ? 'text-amber-300' : 'text-emerald-300'
                 } transition"
               >
@@ -1648,9 +1744,22 @@
         `;
     }
 
+    function openDayEditorModalForDate(iso) {
+      if (!iso) return;
+      state.selectedDate = iso;
+      saveState();
+      const metrics = calculateMetrics();
+      renderMonthCalendar(metrics);
+      renderSelectedDayEditor();
+      openAnimatedModal('day-editor-modal');
+      setTimeout(() => {
+        document.getElementById('editor-amount-input')?.focus();
+      }, 180);
+    }
+
     function renderWalletHistory() {
       const listEl = document.getElementById('wallet-history-list');
-      const countEl = document.getElementById('history-section-count');
+      const countEl = document.getElementById('history-modal-count');
       if (!listEl) return;
 
       const allEntries = buildUnifiedHistoryEntries();
@@ -1703,26 +1812,26 @@
                 type="button"
                 data-delete-tx-id="${escapeHtml(entry.deletableTxId)}"
                 aria-label="Delete transaction"
-                class="w-7 h-7 rounded-lg bg-zinc-900 hover:bg-red-950/70 border border-zinc-800 text-zinc-400 hover:text-red-300 text-sm font-bold flex items-center justify-center transition"
+                class="w-7 h-7 rounded-lg bg-zinc-900 hover:bg-red-950/70 border border-zinc-800 text-zinc-400 hover:text-red-300 text-sm font-bold flex items-center justify-center transition shrink-0"
               >×</button>`
             : entry.jumpDateISO
               ? `<button
                   type="button"
                   data-jump-cal-iso="${escapeHtml(entry.jumpDateISO)}"
-                  class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[11px] font-bold text-zinc-300 transition"
+                  class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[11px] font-bold text-zinc-300 transition shrink-0"
                 >Edit</button>`
               : '';
 
           return `
             <div class="bg-obsidian border border-zinc-800/90 rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3">
-              <div class="flex items-start gap-3 min-w-0">
+              <div class="flex items-start gap-3 min-w-0 flex-1">
                 <div class="w-8 h-8 rounded-xl bg-carbon border border-zinc-800 flex items-center justify-center text-sm shrink-0 mt-0.5">
                   ${entry.icon}
                 </div>
-                <div class="min-w-0 space-y-1">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-sm font-extrabold text-white">${escapeHtml(entry.title)}</span>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${entry.badgeClass}">
+                <div class="min-w-0 space-y-1 flex-1">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-sm font-extrabold text-white break-words">${escapeHtml(entry.title)}</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${entry.badgeClass}">
                       ${escapeHtml(entry.badgeText)}
                     </span>
                   </div>
@@ -1731,7 +1840,7 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2.5 shrink-0">
+              <div class="flex items-center gap-2 shrink-0">
                 <span class="text-sm sm:text-base font-black ${amountColor}">${amountText}</span>
                 ${actionBtn}
               </div>
@@ -1749,7 +1858,6 @@
       renderWalletHistory();
     }
 
-    // Update Selected Day Savings & Note Live
     function updateSelectedDayLog(rawAmount, rawNote, shouldToast = false) {
       const iso = state.selectedDate || getRealTodayISO();
       const existing = state.dailyLogs[iso] || { amount: '', note: '' };
@@ -1787,7 +1895,6 @@
       showToast(`Cleared log for ${formatPrettyDate(iso)}`);
     }
 
-    // Month Navigation & Month/Year Picker
     function shiftViewMonth(delta) {
       let y = state.viewYear;
       let m = state.viewMonth + delta;
@@ -1800,7 +1907,6 @@
       }
       state.viewYear = y;
       state.viewMonth = m;
-      // Default selected date in the newly opened month to day 1 (or today if current month)
       const realTodayISO = getRealTodayISO();
       const prefix = `${y}-${String(m + 1).padStart(2, '0')}-`;
       state.selectedDate = realTodayISO.startsWith(prefix) ? realTodayISO : `${prefix}01`;
@@ -1811,15 +1917,11 @@
     function openMonthPickerModal() {
       pickerYear = state.viewYear;
       renderMonthPickerGrid();
-      const modal = document.getElementById('month-picker-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      openAnimatedModal('month-picker-modal');
     }
 
     function closeMonthPickerModal() {
-      const modal = document.getElementById('month-picker-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      closeAnimatedModal('month-picker-modal');
     }
 
     function renderMonthPickerGrid() {
@@ -1857,28 +1959,17 @@
         .join('');
     }
 
-    function scrollToHistorySection() {
-      document.getElementById('historySection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    function openHistoryModal() {
+      renderWalletHistory();
+      openAnimatedModal('history-modal');
     }
 
-    function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    function closeHistoryModal() {
+      closeAnimatedModal('history-modal');
     }
 
-    function updateFloatingTopButton() {
-      const topBtn = document.getElementById('scroll-top-btn');
-      if (!topBtn) return;
-      if (window.scrollY > 260) {
-        topBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
-      } else {
-        topBtn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
-      }
-    }
-
-    // Wallet Transaction Modal
     function openTxModal(type) {
       currentTxType = type;
-      const modal = document.getElementById('tx-modal');
       const titleEl = document.getElementById('tx-modal-title');
       const subEl = document.getElementById('tx-modal-subtitle');
       const itemInput = document.getElementById('tx-title');
@@ -1919,15 +2010,12 @@
         submitBtn.className = 'px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition';
       }
 
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      setTimeout(() => (type === 'gym' ? amtInput.focus() : itemInput.focus()), 40);
+      openAnimatedModal('tx-modal');
+      setTimeout(() => (type === 'gym' ? amtInput.focus() : itemInput.focus()), 180);
     }
 
     function closeTxModal() {
-      const modal = document.getElementById('tx-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      closeAnimatedModal('tx-modal');
     }
 
     function handleTxFormSubmit(e) {
@@ -1968,18 +2056,13 @@
       }
     }
 
-    // Base Cash Modal
     function openStartCashModal() {
       document.getElementById('sc-amount').value = state.startingCash;
-      const modal = document.getElementById('start-cash-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      openAnimatedModal('start-cash-modal');
     }
 
     function closeStartCashModal() {
-      const modal = document.getElementById('start-cash-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      closeAnimatedModal('start-cash-modal');
     }
 
     function handleStartCashSubmit(e) {
@@ -1991,7 +2074,6 @@
       showToast(`Base cash updated to ${formatPeso(state.startingCash)}`);
     }
 
-    // Complete Goal Workflow
     function isGymRelatedGoal(goal) {
       return /gym/i.test(String(goal?.name || ''));
     }
@@ -2010,15 +2092,11 @@
         ? `Marks goal completed, deducts <strong class="text-white">${formatPeso(targetAmt)}</strong> from your wallet into History, and starts your <strong class="text-red-300">30-day gym countdown</strong>.`
         : `Marks goal completed and deducts <strong class="text-white">${formatPeso(targetAmt)}</strong> from your wallet into History.`;
 
-      const modal = document.getElementById('complete-goal-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      openAnimatedModal('complete-goal-modal');
     }
 
     function closeCompleteGoalModal() {
-      const modal = document.getElementById('complete-goal-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      closeAnimatedModal('complete-goal-modal');
     }
 
     function finalizeGoalCompletion(deductFromWallet) {
@@ -2069,11 +2147,9 @@
       showToast(`Reopened "${goal.name}"`);
     }
 
-    // Goal Modal (Edit / Create)
     function openGoalModal(mode = 'edit') {
       goalModalMode = mode;
       const goal = getActiveGoal();
-      const modal = document.getElementById('goal-modal');
       const titleEl = document.getElementById('goal-modal-title');
       const delBtn = document.getElementById('delete-goal-btn');
 
@@ -2094,14 +2170,11 @@
         else delBtn.classList.add('hidden');
       }
 
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      openAnimatedModal('goal-modal');
     }
 
     function closeGoalModal() {
-      const modal = document.getElementById('goal-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      closeAnimatedModal('goal-modal');
     }
 
     function parsePresetList(str) {
@@ -2162,18 +2235,13 @@
       showToast(`Deleted "${current.name}"`);
     }
 
-    // Backup & Restore
     function openBackupModal() {
       document.getElementById('backup-textarea').value = JSON.stringify(state, null, 2);
-      const modal = document.getElementById('backup-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      openAnimatedModal('backup-modal');
     }
 
     function closeBackupModal() {
-      const modal = document.getElementById('backup-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      closeAnimatedModal('backup-modal');
     }
 
     function copyBackupJson() {
@@ -2244,10 +2312,28 @@
     }
 
     function bindEvents() {
-      // Top Scroll & Backup
-      document.getElementById('scroll-history-btn')?.addEventListener('click', scrollToHistorySection);
-      document.getElementById('scroll-top-btn')?.addEventListener('click', scrollToTop);
-      window.addEventListener('scroll', updateFloatingTopButton, { passive: true });
+      // Backdrop click to close modals cleanly
+      document.querySelectorAll('[data-modal-backdrop]').forEach((backdrop) => {
+        backdrop.addEventListener('click', (e) => {
+          if (e.target === backdrop) {
+            closeAnimatedModal(backdrop.id);
+          }
+        });
+      });
+
+      // Escape key closes any open modal smoothly
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('[data-modal-backdrop].is-visible').forEach((modal) => {
+            closeAnimatedModal(modal.id);
+          });
+        }
+      });
+
+      // History Modal & Backup Modal
+      document.getElementById('open-history-btn')?.addEventListener('click', openHistoryModal);
+      document.getElementById('close-history-modal-btn')?.addEventListener('click', closeHistoryModal);
+      document.getElementById('close-history-footer-btn')?.addEventListener('click', closeHistoryModal);
 
       document.getElementById('backup-btn')?.addEventListener('click', openBackupModal);
       document.getElementById('close-backup-btn')?.addEventListener('click', closeBackupModal);
@@ -2256,6 +2342,10 @@
       document.getElementById('download-json-btn')?.addEventListener('click', downloadBackupJson);
       document.getElementById('import-json-btn')?.addEventListener('click', importBackupJson);
       document.getElementById('reset-default-btn')?.addEventListener('click', resetAppData);
+
+      // Day Editor Modal
+      document.getElementById('close-day-editor-btn')?.addEventListener('click', () => closeAnimatedModal('day-editor-modal'));
+      document.getElementById('done-day-editor-btn')?.addEventListener('click', () => closeAnimatedModal('day-editor-modal'));
 
       // Wallet Quick Actions
       document.getElementById('btn-bought-something')?.addEventListener('click', () => openTxModal('purchase'));
@@ -2333,18 +2423,16 @@
         renderAll();
       });
 
-      // Calendar Grid Day Tap
+      // Calendar Grid Day Tap -> Opens Slow Pop-Up Day Editor Modal
       document.getElementById('calendar-grid')?.addEventListener('click', (e) => {
         const cell = e.target.closest('[data-cal-date]');
         if (!cell) return;
         const iso = cell.getAttribute('data-cal-date');
         if (!iso) return;
-        state.selectedDate = iso;
-        saveState();
-        renderAll();
+        openDayEditorModalForDate(iso);
       });
 
-      // Selected Day Editor Inputs & Quick-Fill Presets
+      // Day Editor Inputs & Quick-Fill Presets
       document.getElementById('editor-amount-input')?.addEventListener('input', (e) => {
         updateSelectedDayLog(e.target.value, undefined, false);
       });
@@ -2399,9 +2487,10 @@
             state.selectedDate = iso;
             saveState();
             renderAll();
-            const editorEl = document.getElementById('selected-day-editor');
-            editorEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            document.getElementById('editor-amount-input')?.focus();
+            closeHistoryModal();
+            setTimeout(() => {
+              openDayEditorModalForDate(iso);
+            }, 220);
           }
         }
       });
